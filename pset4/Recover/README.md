@@ -1,97 +1,80 @@
-# Cash
+Recover
+Implement a program that recovers JPEGs from a forensic image, per the below.
 
-## Greedy Algorithms
+$ ./recover card.raw
+Background
+In anticipation of this problem, we spent the past several days taking photos of people we know, all of which were saved on a digital camera as JPEGs on a memory card. (Okay, it’s possible we actually spent the past several days on Facebook instead.) Unfortunately, we somehow deleted them all! Thankfully, in the computer world, “deleted” tends not to mean “deleted” so much as “forgotten.” Even though the camera insists that the card is now blank, we’re pretty sure that’s not quite true. Indeed, we’re hoping (er, expecting!) you can write a program that recovers the photos for us!
 
-<!-- http://mypieceofthe31415927.blogspot.com/2014/04/whats-wrong-with-these-us-coins.html -->
-![US coins](coins.jpg)
+Even though JPEGs are more complicated than BMPs, JPEGs have “signatures,” patterns of bytes that can distinguish them from other file formats. Specifically, the first three bytes of JPEGs are
 
-When making change, odds are you want to minimize the number of coins you're dispensing for each customer, lest you run out (or annoy the customer!).  Fortunately, computer science has given cashiers everywhere ways to minimize numbers of coins due: greedy algorithms.
+0xff 0xd8 0xff
+from first byte to third byte, left to right. The fourth byte, meanwhile, is either 0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, or 0xef. Put another way, the fourth byte’s first four bits are 1110.
 
-According to the National Institute of Standards and Technology (NIST), a greedy algorithm is one "that always takes the best immediate, or local, solution while finding an answer. Greedy algorithms find the overall, or globally, optimal solution for some optimization problems, but may find less-than-optimal solutions for some instances of other problems."
+Odds are, if you find this pattern of four bytes on media known to store photos (e.g., my memory card), they demarcate the start of a JPEG. To be fair, you might encounter these patterns on some disk purely by chance, so data recovery isn’t an exact science.
 
-What's all that mean? Well, suppose that a cashier owes a customer some change and in that cashier's drawer are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢). The problem to be solved is to decide which coins and how many of each to hand to the customer. Think of a "greedy" cashier as one who wants to take the biggest bite out of this problem as possible with each coin they take out of the drawer. For instance, if some customer is owed 41¢, the biggest first (i.e., best immediate, or local) bite that can be taken is 25¢ (this bite is "best" inasmuch as it gets us closer to 0¢ faster than any other coin would). Note that a bite of this size would whittle what was a 41¢ problem down to a 16¢ problem, since 41 - 25 = 16. That is, the remainder is a similar but smaller problem. Needless to say, another 25¢ bite would be too big (assuming the cashier prefers not to lose money). So, our greedy cashier would move on to a bite of size 10¢, leaving him or her with a 6¢ problem. At that point, greed calls for one 5¢ bite followed by one 1¢ bite, at which point the problem is solved. The customer receives one quarter, one dime, one nickel, and one penny: four coins in total.
+Fortunately, digital cameras tend to store photographs contiguously on memory cards, whereby each photo is stored immediately after the previously taken photo. Accordingly, the start of a JPEG usually demarks the end of another. However, digital cameras often initialize cards with a FAT file system whose “block size” is 512 bytes (B). The implication is that these cameras only write to those cards in units of 512 B. A photo that’s 1 MB (i.e., 1,048,576 B) thus takes up 1048576 ÷ 512 = 2048 “blocks” on a memory card. But so does a photo that’s, say, one byte smaller (i.e., 1,048,575 B)! The wasted space on disk is called “slack space.” Forensic investigators often look at slack space for remnants of suspicious data.
 
-It turns out that this greedy approach (i.e., algorithm) is not only locally optimal but also globally so for America's currency (and also the European Union's). That is, so long as a cashier has enough of each coin, this largest-to-smallest approach will yield the fewest coins possible. How few? Well, you tell us!
+The implication of all these details is that you, the investigator, can probably write a program that iterates over a copy of my memory card, looking for JPEGs’ signatures. Each time you find a signature, you can open a new file for writing and start filling that file with bytes from my memory card, closing that file only once you encounter another signature. Moreover, rather than read my memory card’s bytes one at a time, you can read 512 of them at a time into a buffer for efficiency’s sake. Thanks to FAT, you can trust that JPEGs’ signatures will be “block-aligned.” That is, you need only look for those signatures in a block’s first four bytes.
 
-{% next %}
+Realize, of course, that JPEGs can span contiguous blocks. Otherwise, no JPEG could be larger than 512 B. But the last byte of a JPEG might not fall at the very end of a block. Recall the possibility of slack space. But not to worry. Because this memory card was brand-new when I started snapping photos, odds are it’d been “zeroed” (i.e., filled with 0s) by the manufacturer, in which case any slack space will be filled with 0s. It’s okay if those trailing 0s end up in the JPEGs you recover; they should still be viewable.
 
-## Implementation Details
+Now, I only have one memory card, but there are a lot of you! And so I’ve gone ahead and created a “forensic image” of the card, storing its contents, byte after byte, in a file called card.raw. So that you don’t waste time iterating over millions of 0s unnecessarily, I’ve only imaged the first few megabytes of the memory card. But you should ultimately find that the image contains 50 JPEGs.
 
-Implement, in `cash.c` at right, a program that first asks the user how much change is owed and then prints the minimum number of coins with which that change can be made.
+Getting Started
+Here’s how to download this problem’s “distribution code” (i.e., starter code) into your own CS50 IDE. Log into CS50 IDE and then, in a terminal window, execute each of the below.
 
-* Use `get_float` to get the user's input and `printf` to output your answer. Assume that the only coins available are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢).
-    * We ask that you use `get_float` so that you can handle dollars and cents, albeit sans dollar sign. In other words, if some customer is owed $9.75 (as in the case where a newspaper costs 25¢ but the customer pays with a $10 bill), assume that your program's input will be `9.75` and not `$9.75` or `975`. However, if some customer is owed $9 exactly, assume that your program's input will be `9.00` or just `9` but, again, not `$9` or `900`. Of course, by nature of floating-point values, your program will likely work with inputs like `9.0` and `9.000` as well; you need not worry about checking whether the user's input is "formatted" like money should be.
-* You need not try to check whether a user's input is too large to fit in a `float`. Using `get_float` alone will ensure that the user's input is indeed a floating-point (or integral) value but not that it is non-negative.
-* If the user fails to provide a non-negative value, your program should re-prompt the user for a valid amount again and again until the user complies.
-* So that we can automate some tests of your code, be sure that your program's last line of output is only the minimum number of coins possible: an integer followed by `\n`.
-* Beware the inherent imprecision of floating-point values. Recall [`floats.c`](https://sandbox.cs50.io/575cd269-8b4e-4a01-bc9f-3de38614b43e) from class, wherein, if `x` is `2`, and `y` is `10`, `x / y` is not precisely two tenths! And so, before making change, you'll probably want to convert the user's inputted dollars to cents (i.e., from a `float` to an `int`) to avoid tiny errors that might otherwise add up!
-* Take care to round your cents to the nearest penny, as with `round`, which is declared in `math.h`. For instance, if `dollars` is a `float` with the user's input (e.g., `0.20`), then code like
+Execute cd to ensure that you’re in ~/ (i.e., your home directory).
+If you haven’t already, execute mkdir pset4 to make (i.e., create) a directory called pset4 in your home directory.
+Execute cd pset4 to change into (i.e., open) your pset4 directory.
+Execute wget https://cdn.cs50.net/2019/fall/psets/4/recover/recover.zip to download a (compressed) ZIP file with this problem’s distribution.
+Execute unzip recover.zip to uncompress that file.
+Execute rm recover.zip followed by yes or y to delete that ZIP file.
+Execute ls. You should see a directory called recover, which was inside of that ZIP file.
+Execute cd recover to change into that directory.
+Execute ls. You should see this problem’s distribution, including card.raw and recover.c.
+Specification
+Implement a program called recover that recovers JPEGs from a forensic image.
 
-  ```
-  int coins = round(dollars * 100);
-  ```
+Implement your program in a file called recover.c in a directory called recover.
+Your program should accept exactly one command-line argument, the name of a forensic image from which to recover JPEGs.
+If your program is not executed with exactly one command-line argument, it should remind the user of correct usage, and main should return 1.
+If the forensic image cannot be opened for reading, your program should inform the user as much, and main should return 1.
+Your program, if it uses malloc, must not leak any memory.
+Walkthrough
 
-  will safely convert `0.20` (or even `0.200000002980232238769531250`) to `20`.
-
+Usage
 Your program should behave per the examples below.
 
-```
-$ ./cash
-Change owed: 0.41
-4
-```
+$ ./recover
+Usage: ./recover image
+$ ./recover card.raw
+Hints
+Keep in mind that you can open card.raw programmatically with fopen, as with the below, provided argv[1] exists.
 
-```
-$ ./cash
-Change owed: -0.41
-Change owed: foo
-Change owed: 0.41
-4
-```
+FILE *file = fopen(argv[1], "r");
+When executed, your program should recover every one of the JPEGs from card.raw, storing each as a separate file in your current working directory. Your program should number the files it outputs by naming each ###.jpg, where ### is three-digit decimal number from 000 on up. (Befriend sprintf.) You need not try to recover the JPEGs’ original names. To check whether the JPEGs your program spit out are correct, simply double-click and take a look! If each photo appears intact, your operation was likely a success!
 
-### Walkthrough
+Odds are, though, the JPEGs that the first draft of your code spits out won’t be correct. (If you open them up and don’t see anything, they’re probably not correct!) Execute the command below to delete all JPEGs in your current working directory.
 
-{% video https://www.youtube.com/watch?v=Y3nWGvqt_Cg %}
+$ rm *.jpg
+If you’d rather not be prompted to confirm each deletion, execute the command below instead.
 
+$ rm -f *.jpg
+Just be careful with that -f switch, as it “forces” deletion without prompting you.
 
-### Staff's Solution
+If you’d like to create a new type to store a byte of data, you can do so via the below, which defines a new type called BYTE to be a uint8_t (a type defined in stdint.h, representing an 8-bit unsigned integer).
 
-To try out the staff's implementation of this problem, execute
+typedef uint8_t BYTE;
+Keep in mind, too, that you can read data from a file using fread, which will read data from a file into a location in memory and return the number of items successfully read from the file.
 
-```
-./cash
-```
+Testing
+Execute the below to evaluate the correctness of your code using check50. But be sure to compile and test it yourself as well!
 
-within [this sandbox](http://bit.ly/2VAxlUr).
+check50 cs50/problems/2020/x/recover
+Execute the below to evaluate the style of your code using style50.
 
-### How to Test Your Code
+style50 recover.c
+How to Submit
+Execute the below, logging in with your GitHub username and password when prompted. For security, you’ll see asterisks (*) instead of the actual characters in your password.
 
-Does your code work as prescribed when you input
-
-* `-1.00` (or other negative numbers)?
-* `0.00`?
-* `0.01` (or other positive numbers)?
-* letters or words?
-* no input at all, when you only hit Enter?
-
-You can also execute the below to evaluate the correctness of your code using `check50`, but be sure to compile and test it yourself as well!
-
-```
-check50 cs50/problems/2019/fall/cash
-```
-
-Execute the below to evaluate the style of your code using `style50`.
-
-```
-style50 cash.c
-```
-
-{% next %}
-
-## How to Submit
-
-Execute the below, logging in with your GitHub username and password when prompted. For security, you'll see asterisks (`*`) instead of the actual characters in your password.
-
-```
-submit50 cs50/problems/2019/fall/cash
-```
+submit50 cs50/problems/2020/x/recover

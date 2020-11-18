@@ -1,97 +1,94 @@
-# Cash
+Plurality
+Implement a program that runs a plurality election, per the below.
 
-## Greedy Algorithms
+$ ./plurality Alice Bob Charlie
+Number of voters: 4
+Vote: Alice
+Vote: Bob
+Vote: Charlie
+Vote: Alice
+Alice
+Background
+Elections come in all shapes and sizes. In the UK, the Prime Minister is officially appointed by the monarch, who generally chooses the leader of the political party that wins the most seats in the House of Commons. The United States uses a multi-step Electoral College process where citizens vote on how each state should allocate Electors who then elect the President.
 
-<!-- http://mypieceofthe31415927.blogspot.com/2014/04/whats-wrong-with-these-us-coins.html -->
-![US coins](coins.jpg)
+Perhaps the simplest way to hold an election, though, is via a method commonly known as the “plurality vote” (also known as “first-past-the-post” or “winner take all”). In the plurality vote, every voter gets to vote for one candidate. At the end of the election, whichever candidate has the greatest number of votes is declared the winner of the election.
 
-When making change, odds are you want to minimize the number of coins you're dispensing for each customer, lest you run out (or annoy the customer!).  Fortunately, computer science has given cashiers everywhere ways to minimize numbers of coins due: greedy algorithms.
+Getting Started
+Here’s how to download this problem’s “distribution code” (i.e., starter code) into your own CS50 IDE. Log into CS50 IDE and then, in a terminal window, execute each of the below.
 
-According to the National Institute of Standards and Technology (NIST), a greedy algorithm is one "that always takes the best immediate, or local, solution while finding an answer. Greedy algorithms find the overall, or globally, optimal solution for some optimization problems, but may find less-than-optimal solutions for some instances of other problems."
+Execute cd to ensure that you’re in ~/ (i.e., your home directory).
+Execute mkdir pset3 to make (i.e., create) a directory called pset3 in your home directory.
+Execute cd pset3 to change into (i.e., open) that directory.
+Execute mkdir plurality to make (i.e., create) a directory called plurality in your pset3 directory.
+Execute cd plurality to change into (i.e., open) that directory.
+Execute wget https://cdn.cs50.net/2019/fall/psets/3/plurality/plurality.c to download this problem’s distribution code.
+Execute ls. You should see this problem’s distribution code, in a file called plurality.c.
+Understanding
+Let’s now take a look at plurality.c and read through the distribution code that’s been provided to you.
 
-What's all that mean? Well, suppose that a cashier owes a customer some change and in that cashier's drawer are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢). The problem to be solved is to decide which coins and how many of each to hand to the customer. Think of a "greedy" cashier as one who wants to take the biggest bite out of this problem as possible with each coin they take out of the drawer. For instance, if some customer is owed 41¢, the biggest first (i.e., best immediate, or local) bite that can be taken is 25¢ (this bite is "best" inasmuch as it gets us closer to 0¢ faster than any other coin would). Note that a bite of this size would whittle what was a 41¢ problem down to a 16¢ problem, since 41 - 25 = 16. That is, the remainder is a similar but smaller problem. Needless to say, another 25¢ bite would be too big (assuming the cashier prefers not to lose money). So, our greedy cashier would move on to a bite of size 10¢, leaving him or her with a 6¢ problem. At that point, greed calls for one 5¢ bite followed by one 1¢ bite, at which point the problem is solved. The customer receives one quarter, one dime, one nickel, and one penny: four coins in total.
+The line #define MAX 9 is some syntax used here to mean that MAX is a constant (equal to 9) that can be used throughout the program. Here, it represents the maximum number of candidates an election can have.
 
-It turns out that this greedy approach (i.e., algorithm) is not only locally optimal but also globally so for America's currency (and also the European Union's). That is, so long as a cashier has enough of each coin, this largest-to-smallest approach will yield the fewest coins possible. How few? Well, you tell us!
+The file then defines a struct called a candidate. Each candidate has two fields: a string called name representing the candidate’s name, and an int called votes representing the number of votes the candidate has. Next, the file defines a global array of candidates, where each element is itself a candidate.
 
-{% next %}
+Now, take a look at the main function itself. See if you can find where the program sets a global variable candidate_count representing the number of candidates in the election, copies command-line arguments into the array candidates, and asks the user to type in the number of voters. Then, the program lets every voter type in a vote (see how?), calling the vote function on each candidate voted for. Finally, main makes a call to the print_winner function to print out the winner (or winners) of the election.
 
-## Implementation Details
+If you look further down in the file, though, you’ll notice that the vote and print_winner functions have been left blank. This part is up to you to complete!
 
-Implement, in `cash.c` at right, a program that first asks the user how much change is owed and then prints the minimum number of coins with which that change can be made.
+Specification
+Complete the implementation of plurality.c in such a way that the program simulates a plurality vote election.
 
-* Use `get_float` to get the user's input and `printf` to output your answer. Assume that the only coins available are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢).
-    * We ask that you use `get_float` so that you can handle dollars and cents, albeit sans dollar sign. In other words, if some customer is owed $9.75 (as in the case where a newspaper costs 25¢ but the customer pays with a $10 bill), assume that your program's input will be `9.75` and not `$9.75` or `975`. However, if some customer is owed $9 exactly, assume that your program's input will be `9.00` or just `9` but, again, not `$9` or `900`. Of course, by nature of floating-point values, your program will likely work with inputs like `9.0` and `9.000` as well; you need not worry about checking whether the user's input is "formatted" like money should be.
-* You need not try to check whether a user's input is too large to fit in a `float`. Using `get_float` alone will ensure that the user's input is indeed a floating-point (or integral) value but not that it is non-negative.
-* If the user fails to provide a non-negative value, your program should re-prompt the user for a valid amount again and again until the user complies.
-* So that we can automate some tests of your code, be sure that your program's last line of output is only the minimum number of coins possible: an integer followed by `\n`.
-* Beware the inherent imprecision of floating-point values. Recall [`floats.c`](https://sandbox.cs50.io/575cd269-8b4e-4a01-bc9f-3de38614b43e) from class, wherein, if `x` is `2`, and `y` is `10`, `x / y` is not precisely two tenths! And so, before making change, you'll probably want to convert the user's inputted dollars to cents (i.e., from a `float` to an `int`) to avoid tiny errors that might otherwise add up!
-* Take care to round your cents to the nearest penny, as with `round`, which is declared in `math.h`. For instance, if `dollars` is a `float` with the user's input (e.g., `0.20`), then code like
+Complete the vote function.
+vote takes a single argument, a string called name, representing the name of the candidate who was voted for.
+If name matches one of the names of the candidates in the election, then update that candidate’s vote total to account for the new vote. The vote function in this case should return true to indicate a successful ballot.
+If name does not match the name of any of the candidates in the election, no vote totals should change, and the vote function should return false to indicate an invalid ballot.
+You may assume that no two candidates will have the same name.
+Complete the print_winner function.
+The function should print out the name of the candidate who received the most votes in the election, and then print a newline.
+It is possible that the election could end in a tie if multiple candidates each have the maximum number of votes. In that case, you should output the names of each of the winning candidates, each on a separate line.
+You should not modify anything else in plurality.c other than the implementations of the vote and print_winner functions (and the inclusion of additional header files, if you’d like).
 
-  ```
-  int coins = round(dollars * 100);
-  ```
-
-  will safely convert `0.20` (or even `0.200000002980232238769531250`) to `20`.
-
+Usage
 Your program should behave per the examples below.
 
-```
-$ ./cash
-Change owed: 0.41
-4
-```
+$ ./plurality Alice Bob
+Number of voters: 3
+Vote: Alice
+Vote: Bob
+Vote: Alice
+Alice
+$ ./plurality Alice Bob
+Number of voters: 3
+Vote: Alice
+Vote: Charlie
+Invalid vote.
+Vote: Alice
+Alice
+$ ./plurality Alice Bob Charlie
+Number of voters: 5
+Vote: Alice
+Vote: Charlie
+Vote: Bob
+Vote: Bob
+Vote: Alice
+Alice
+Bob
+Walkthrough
 
-```
-$ ./cash
-Change owed: -0.41
-Change owed: foo
-Change owed: 0.41
-4
-```
+Testing
+Be sure to test your code to make sure it handles…
 
-### Walkthrough
+An election with any number of candidate (up to the MAX of 9)
+Voting for a candidate by name
+Invalid votes for candidates who are not on the ballot
+Printing the winner of the election if there is only one
+Printing the winner of the election if there are multiple winners
+Execute the below to evaluate the correctness of your code using check50. But be sure to compile and test it yourself as well!
 
-{% video https://www.youtube.com/watch?v=Y3nWGvqt_Cg %}
+check50 cs50/problems/2020/x/plurality
+Execute the below to evaluate the style of your code using style50.
 
+style50 plurality.c
+How to Submit
+Execute the below, logging in with your GitHub username and password when prompted. For security, you’ll see asterisks (*) instead of the actual characters in your password.
 
-### Staff's Solution
-
-To try out the staff's implementation of this problem, execute
-
-```
-./cash
-```
-
-within [this sandbox](http://bit.ly/2VAxlUr).
-
-### How to Test Your Code
-
-Does your code work as prescribed when you input
-
-* `-1.00` (or other negative numbers)?
-* `0.00`?
-* `0.01` (or other positive numbers)?
-* letters or words?
-* no input at all, when you only hit Enter?
-
-You can also execute the below to evaluate the correctness of your code using `check50`, but be sure to compile and test it yourself as well!
-
-```
-check50 cs50/problems/2019/fall/cash
-```
-
-Execute the below to evaluate the style of your code using `style50`.
-
-```
-style50 cash.c
-```
-
-{% next %}
-
-## How to Submit
-
-Execute the below, logging in with your GitHub username and password when prompted. For security, you'll see asterisks (`*`) instead of the actual characters in your password.
-
-```
-submit50 cs50/problems/2019/fall/cash
-```
+submit50 cs50/problems/2020/x/plurality

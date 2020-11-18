@@ -1,97 +1,185 @@
-# Cash
+Runoff
+Implement a program that runs a runoff election, per the below.
 
-## Greedy Algorithms
+./runoff Alice Bob Charlie
+Number of voters: 5
+Rank 1: Alice
+Rank 2: Bob
+Rank 3: Charlie
 
-<!-- http://mypieceofthe31415927.blogspot.com/2014/04/whats-wrong-with-these-us-coins.html -->
-![US coins](coins.jpg)
+Rank 1: Alice
+Rank 2: Charlie
+Rank 3: Bob
 
-When making change, odds are you want to minimize the number of coins you're dispensing for each customer, lest you run out (or annoy the customer!).  Fortunately, computer science has given cashiers everywhere ways to minimize numbers of coins due: greedy algorithms.
+Rank 1: Bob
+Rank 2: Charlie
+Rank 3: Alice
 
-According to the National Institute of Standards and Technology (NIST), a greedy algorithm is one "that always takes the best immediate, or local, solution while finding an answer. Greedy algorithms find the overall, or globally, optimal solution for some optimization problems, but may find less-than-optimal solutions for some instances of other problems."
+Rank 1: Bob
+Rank 2: Alice
+Rank 3: Charlie
 
-What's all that mean? Well, suppose that a cashier owes a customer some change and in that cashier's drawer are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢). The problem to be solved is to decide which coins and how many of each to hand to the customer. Think of a "greedy" cashier as one who wants to take the biggest bite out of this problem as possible with each coin they take out of the drawer. For instance, if some customer is owed 41¢, the biggest first (i.e., best immediate, or local) bite that can be taken is 25¢ (this bite is "best" inasmuch as it gets us closer to 0¢ faster than any other coin would). Note that a bite of this size would whittle what was a 41¢ problem down to a 16¢ problem, since 41 - 25 = 16. That is, the remainder is a similar but smaller problem. Needless to say, another 25¢ bite would be too big (assuming the cashier prefers not to lose money). So, our greedy cashier would move on to a bite of size 10¢, leaving him or her with a 6¢ problem. At that point, greed calls for one 5¢ bite followed by one 1¢ bite, at which point the problem is solved. The customer receives one quarter, one dime, one nickel, and one penny: four coins in total.
+Rank 1: Charlie
+Rank 2: Alice
+Rank 3: Bob
 
-It turns out that this greedy approach (i.e., algorithm) is not only locally optimal but also globally so for America's currency (and also the European Union's). That is, so long as a cashier has enough of each coin, this largest-to-smallest approach will yield the fewest coins possible. How few? Well, you tell us!
+Alice
+Background
+You already know about plurality elections, which follow a very simple algorithm for determining the winner of an election: every voter gets one vote, and the candidate with the most votes wins.
 
-{% next %}
+But the plurality vote does have some disadvantages. What happens, for instance, in an election with three candidates, and the ballots below are cast?
 
-## Implementation Details
+Five ballots, tie betweeen Alice and Bob
 
-Implement, in `cash.c` at right, a program that first asks the user how much change is owed and then prints the minimum number of coins with which that change can be made.
+A plurality vote would here declare a tie between Alice and Bob, since each has two votes. But is that the right outcome?
 
-* Use `get_float` to get the user's input and `printf` to output your answer. Assume that the only coins available are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢).
-    * We ask that you use `get_float` so that you can handle dollars and cents, albeit sans dollar sign. In other words, if some customer is owed $9.75 (as in the case where a newspaper costs 25¢ but the customer pays with a $10 bill), assume that your program's input will be `9.75` and not `$9.75` or `975`. However, if some customer is owed $9 exactly, assume that your program's input will be `9.00` or just `9` but, again, not `$9` or `900`. Of course, by nature of floating-point values, your program will likely work with inputs like `9.0` and `9.000` as well; you need not worry about checking whether the user's input is "formatted" like money should be.
-* You need not try to check whether a user's input is too large to fit in a `float`. Using `get_float` alone will ensure that the user's input is indeed a floating-point (or integral) value but not that it is non-negative.
-* If the user fails to provide a non-negative value, your program should re-prompt the user for a valid amount again and again until the user complies.
-* So that we can automate some tests of your code, be sure that your program's last line of output is only the minimum number of coins possible: an integer followed by `\n`.
-* Beware the inherent imprecision of floating-point values. Recall [`floats.c`](https://sandbox.cs50.io/575cd269-8b4e-4a01-bc9f-3de38614b43e) from class, wherein, if `x` is `2`, and `y` is `10`, `x / y` is not precisely two tenths! And so, before making change, you'll probably want to convert the user's inputted dollars to cents (i.e., from a `float` to an `int`) to avoid tiny errors that might otherwise add up!
-* Take care to round your cents to the nearest penny, as with `round`, which is declared in `math.h`. For instance, if `dollars` is a `float` with the user's input (e.g., `0.20`), then code like
+There’s another kind of voting system known as a ranked-choice voting system. In a ranked-choice system, voters can vote for more than one candidate. Instead of just voting for their top choice, they can rank the candidates in order of preference. The resulting ballots might therefore look like the below.
 
-  ```
-  int coins = round(dollars * 100);
-  ```
+Three ballots, with ranked preferences
 
-  will safely convert `0.20` (or even `0.200000002980232238769531250`) to `20`.
+Here, each voter, in addition to specifying their first preference candidate, has also indicated their second and third choices. And now, what was previously a tied election could now have a winner. The race was originally tied between Alice and Bob, so Charlie was out of the running. But the voter who chose Charlie preferred Alice over Bob, so Alice could here be declared the winner.
 
-Your program should behave per the examples below.
+Ranked choice voting can also solve yet another potential drawback of plurality voting. Take a look at the following ballots.
 
-```
-$ ./cash
-Change owed: 0.41
-4
-```
+Nine ballots, with ranked preferences
 
-```
-$ ./cash
-Change owed: -0.41
-Change owed: foo
-Change owed: 0.41
-4
-```
+Who should win this election? In a plurality vote where each voter chooses their first preference only, Charlie wins this election with four votes compared to only three for Bob and two for Alice. But a majority of the voters (5 out of the 9) would be happier with either Alice or Bob instead of Charlie. By considering ranked preferences, a voting system may be able to choose a winner that better reflects the preferences of the voters.
 
-### Walkthrough
+One such ranked choice voting system is the instant runoff system. In an instant runoff election, voters can rank as many candidates as they wish. If any candidate has a majority (more than 50%) of the first preference votes, that candidate is declared the winner of the election.
 
-{% video https://www.youtube.com/watch?v=Y3nWGvqt_Cg %}
+If no candidate has more than 50% of the vote, then an “instant runoff” occurrs. The candidate who received the fewest number of votes is eliminated from the election, and anyone who originally chose that candidate as their first preference now has their second preference considered. Why do it this way? Effectively, this simulates what would have happened if the least popular candidate had not been in the election to begin with.
 
+The process repeats: if no candidate has a majority of the votes, the last place candidate is eliminated, and anyone who voted for them will instead vote for their next preference (who hasn’t themselves already been eliminated). Once a candidate has a majority, that candidate is declared the winner.
 
-### Staff's Solution
+Let’s consider the nine ballots above and examine how a runoff election would take place.
 
-To try out the staff's implementation of this problem, execute
+Alice has two votes, Bob has three votes, and Charlie has four votes. To win an election with nine people, a majority (five votes) is required. Since nobody has a majority, a runoff needs to be held. Alice has the fewest number of votes (with only two), so Alice is eliminated. The voters who originally voted for Alice listed Bob as second preference, so Bob gets the extra two vote. Bob now has five votes, and Charlie still has four votes. Bob now has a majority, and Bob is declared the winner.
 
-```
-./cash
-```
+What corner cases do we need to consider here?
 
-within [this sandbox](http://bit.ly/2VAxlUr).
+One possibility is that there’s a tie for who should get eliminated. We can handle that scenario by saying all candidates who are tied for last place will be eliminated. If every remaining candidate has the exact same number of votes, though, eliminating the tied last place candidates means eliminating everyone! So in that case, we’ll have to be careful not to eliminate everyone, and just declare the election a tie between all remaining candidates.
 
-### How to Test Your Code
+Some instant runoff elections don’t require voters to rank all of their preferences — so there might be five candidates in an election, but a voter might only choose two. For this problem’s purposes, though, we’ll ignore that particular corner case, and assume that all voters will rank all of the candidates in their preferred order.
 
-Does your code work as prescribed when you input
+Sounds a bit more complicated than a plurality vote, doesn’t it? But it arguably has the benefit of being an election system where the winner of the election more accurately represents the preferences of the voters.
 
-* `-1.00` (or other negative numbers)?
-* `0.00`?
-* `0.01` (or other positive numbers)?
-* letters or words?
-* no input at all, when you only hit Enter?
+Getting Started
+Here’s how to download this problem’s “distribution code” (i.e., starter code) into your own CS50 IDE. Log into CS50 IDE and then, in a terminal window, execute each of the below.
 
-You can also execute the below to evaluate the correctness of your code using `check50`, but be sure to compile and test it yourself as well!
+Execute cd to ensure that you’re in ~/ (i.e., your home directory).
+Execute cd pset3 to change into (i.e., open) your pset3 directory that should already exist.
+Execute mkdir runoff to make (i.e., create) a directory called runoff in your pset3 directory.
+Execute cd runoff to change into (i.e., open) that directory.
+Execute wget https://cdn.cs50.net/2019/fall/psets/3/runoff/runoff.c to download this problem’s distribution code.
+Execute ls. You should see this problem’s distribution code, in a file called runoff.c.
+Understanding
+Let’s open up runoff.c to take a look at what’s already there. We’re defining two constants: MAX_CANDIDATES for the maximum number of candidates in the election, and MAX_VOTERS for the maximum number of voters in the election.
 
-```
-check50 cs50/problems/2019/fall/cash
-```
+Next up is a two-dimensional array preferences. The array preferences[i] will represent all of the preferences for voter number i, and the integer preferences[i][j] here will store the index of the candidate who is the jth preference for voter i.
 
-Execute the below to evaluate the style of your code using `style50`.
+Next up is a struct called candidate. Every candidate has a string field for their name, and int representing the number of votes they currently have, and a bool value called eliminated that indicates whether the candidate has been eliminated from the election. The array candidates will keep track of all of the candidates in the election.
 
-```
-style50 cash.c
-```
+The program also has two global variables: voter_count and candidate_count.
 
-{% next %}
+Now onto main. Notice that after determining the number of candidates and the number of voters, the main voting loop begins, giving every voter a chance to vote. As the voter enters their preferences, the vote function is called to keep track of all of the preferences. If at any point, the ballot is deemed to be invalid, the program exits.
 
-## How to Submit
+Once all of the votes are in, another loop begins: this one’s going to keep looping through the runoff process of checking for a winner and eliminating the last place candidate until there is a winner.
 
-Execute the below, logging in with your GitHub username and password when prompted. For security, you'll see asterisks (`*`) instead of the actual characters in your password.
+The first call here is to a function called tabulate, which should look at all of the voters’ preferences and compute the current vote totals, by looking at each voter’s top choice candidate who hasn’t yet been eliminated. Next, the print_winner function should print out the winner if there is one; if there is, the program is over. But otherwise, the program needs to determine the fewest number of votes anyone still in the election received (via a call to find_min). If it turns out that everyone in the election is tied with the same number of votes (as determined by the is_tie function), the election is declared a tie; otherwise, the last-place candidate (or candidates) is eliminated from the election via a call to the eliminate function.
 
-```
-submit50 cs50/problems/2019/fall/cash
-```
+If you look a bit further down in the file, you’ll see that these functions — vote, tabulate, print_winner, find_min, is_tie, and eliminate — are all left up to you to complete!
+
+Specification
+Complete the implementation of runoff.c in such a way that it simulates a runoff election. You should complete the implementations of the vote, tabulate, print_winner, find_min, is_tie, and eliminate functions, and you should not modify anything else in runoff.c (except you may include additional header files, if you’d like).
+
+vote
+Complete the vote function.
+
+The function takes arguments voter, rank, and name. If name is a match for the name of a valid candidate, then you should update the global preferences array to indicate that the voter voter has that candidate as their rank preference (where 0 is the first preference, 1 is the second preference, etc.).
+If the preference is successfully recorded, the function should return true; the function should return false otherwise (if, for instance, name is not the name of one of the candidates).
+You may assume that no two candidates will have the same name.
+Hints
+Recall that candidate_count stores the number of candidates in the election.
+Recall that you can use strcmp to compare two strings.
+Recall that preferences[i][j] stores the index of the candidate who is the jth ranked preference for the ith voter.
+tabulate
+Complete the tabulate function.
+
+The function should update the number of votes each candidate has at this stage in the runoff.
+Recall that at each stage in the runoff, every voter effectively votes for their top-preferred candidate who has not already been eliminated.
+Hints
+Recall that voter_count stores the number of voters in the election.
+Recall that for a voter i, their top choice candidate is represented by preferences[i][0], their second choice candidate by preferences[i][1], etc.
+Recall that the candidate struct has a field called eliminated, which will be true if the candidate has been eliminated from the election.
+Recall that the candidate struct has a field called votes, which you’ll likely want to update for each voter’s preferred candidate.
+print_winner
+Complete the print_winner function.
+
+If any candidate has more than half of the vote, their name should be printed to stdout and the function should return true.
+If nobody has won the election yet, the function should return false.
+Hints
+Recall that voter_count stores the number of voters in the election. Given that, how would you express the number of votes needed to win the election?
+find_min
+Complete the find_min function.
+
+The function should return the minimum vote total for any candidate who is still in the election.
+Hints
+You’ll likely want to loop through the candidates to find the one who is both still in the election and has the fewest number of votes. What information should you keep track of as you loop through the candidates?
+is_tie
+Complete the is_tie function.
+
+The function takes an argument min, which will be the minimum number of votes that anyone in the election currently has.
+The function should return true if every candidate remaining in the election has the same number of votes, and should return false otherwise.
+Hints
+Recall that a tie happens if every candidate still in the election has the same number of votes. Note, too, that the is_tie function takes an argument min, which is the smallest number of votes any candidate currently has. How might you use that information to determine if the election is a tie (or, conversely, not a tie)?
+eliminate
+Complete the eliminate function.
+
+The function takes an argument min, which will be the minimum number of votes that anyone in the election currently has.
+The function should eliminate the candidate (or candidates) who have min number of votes.
+Walkthrough
+
+Usage
+Your program should behave per the example below:
+
+./runoff Alice Bob Charlie
+Number of voters: 5
+Rank 1: Alice
+Rank 2: Charlie
+Rank 3: Bob
+
+Rank 1: Alice
+Rank 2: Charlie
+Rank 3: Bob
+
+Rank 1: Bob
+Rank 2: Charlie
+Rank 3: Alice
+
+Rank 1: Bob
+Rank 2: Charlie
+Rank 3: Alice
+
+Rank 1: Charlie
+Rank 2: Alice
+Rank 3: Bob
+
+Alice
+Testing
+Be sure to test your code to make sure it handles…
+
+An election with any number of candidate (up to the MAX of 9)
+Voting for a candidate by name
+Invalid votes for candidates who are not on the ballot
+Printing the winner of the election if there is only one
+Not eliminating anyone in the case of a tie between all remaining candidates
+Execute the below to evaluate the correctness of your code using check50. But be sure to compile and test it yourself as well!
+
+check50 cs50/problems/2020/x/runoff
+Execute the below to evaluate the style of your code using style50.
+
+style50 runoff.c
+How to Submit
+Execute the below, logging in with your GitHub username and password when prompted. For security, you’ll see asterisks (*) instead of the actual characters in your password.
+
+submit50 cs50/problems/2020/x/runoff

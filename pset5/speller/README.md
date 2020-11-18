@@ -1,97 +1,228 @@
-# Cash
+Speller
+Be sure to read this specification in its entirety before starting so you know what to do and how to do it!
 
-## Greedy Algorithms
+Implement a program that spell-checks a file, a la the below, using a hash table.
 
-<!-- http://mypieceofthe31415927.blogspot.com/2014/04/whats-wrong-with-these-us-coins.html -->
-![US coins](coins.jpg)
+$ ./speller texts/lalaland.txt
+MISSPELLED WORDS
 
-When making change, odds are you want to minimize the number of coins you're dispensing for each customer, lest you run out (or annoy the customer!).  Fortunately, computer science has given cashiers everywhere ways to minimize numbers of coins due: greedy algorithms.
+[...]
+AHHHHHHHHHHHHHHHHHHHHHHHHHHHT
+[...]
+Shangri
+[...]
+fianc
+[...]
+Sebastian's
+[...]
 
-According to the National Institute of Standards and Technology (NIST), a greedy algorithm is one "that always takes the best immediate, or local, solution while finding an answer. Greedy algorithms find the overall, or globally, optimal solution for some optimization problems, but may find less-than-optimal solutions for some instances of other problems."
+WORDS MISSPELLED:
+WORDS IN DICTIONARY:
+WORDS IN TEXT:
+TIME IN load:
+TIME IN check:
+TIME IN size:
+TIME IN unload:
+TIME IN TOTAL:
+Distribution
+Downloading
+Log into CS50 IDE and then, in a terminal window, execute each of the below.
 
-What's all that mean? Well, suppose that a cashier owes a customer some change and in that cashier's drawer are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢). The problem to be solved is to decide which coins and how many of each to hand to the customer. Think of a "greedy" cashier as one who wants to take the biggest bite out of this problem as possible with each coin they take out of the drawer. For instance, if some customer is owed 41¢, the biggest first (i.e., best immediate, or local) bite that can be taken is 25¢ (this bite is "best" inasmuch as it gets us closer to 0¢ faster than any other coin would). Note that a bite of this size would whittle what was a 41¢ problem down to a 16¢ problem, since 41 - 25 = 16. That is, the remainder is a similar but smaller problem. Needless to say, another 25¢ bite would be too big (assuming the cashier prefers not to lose money). So, our greedy cashier would move on to a bite of size 10¢, leaving him or her with a 6¢ problem. At that point, greed calls for one 5¢ bite followed by one 1¢ bite, at which point the problem is solved. The customer receives one quarter, one dime, one nickel, and one penny: four coins in total.
+Execute cd to ensure that you’re in ~/ (i.e., your home directory).
+Execute mkdir pset5 to make (i.e., create) a directory called pset5 in your home directory.
+Execute cd pset5 to change into (i.e., open) that directory.
+Execute wget https://cdn.cs50.net/2019/fall/psets/5/speller/speller.zip to download a (compressed) ZIP file with this problem’s distribution.
+Execute unzip speller.zip to uncompress that file.
+Execute rm speller.zip followed by yes or y to delete that ZIP file.
+Execute ls. You should see a directory called speller, which was inside of that ZIP file.
+Execute cd speller to change into that directory.
+Execute ls. You should see this problem’s distribution:
+dictionaries/  dictionary.c  dictionary.h  keys/  Makefile  speller.c  texts/
+Understanding
+Theoretically, on input of size n, an algorithm with a running time of n is “asymptotically equivalent,” in terms of O, to an algorithm with a running time of 2n. Indeed, when describing the running time of an algorithm, we typically focus on the dominant (i.e., most impactful) term (i.e., n in this case, since n could be much larger than 2). In the real world, though, the fact of the matter is that 2n feels twice as slow as n.
 
-It turns out that this greedy approach (i.e., algorithm) is not only locally optimal but also globally so for America's currency (and also the European Union's). That is, so long as a cashier has enough of each coin, this largest-to-smallest approach will yield the fewest coins possible. How few? Well, you tell us!
+The challenge ahead of you is to implement the fastest spell checker you can! By “fastest,” though, we’re talking actual “wall-clock,” not asymptotic, time.
 
-{% next %}
+In speller.c, we’ve put together a program that’s designed to spell-check a file after loading a dictionary of words from disk into memory. That dictionary, meanwhile, is implemented in a file called dictionary.c. (It could just be implemented in speller.c, but as programs get more complex, it’s often convenient to break them into multiple files.) The prototypes for the functions therein, meanwhile, are defined not in dictionary.c itself but in dictionary.h instead. That way, both speller.c and dictionary.c can #include the file. Unfortunately, we didn’t quite get around to implementing the loading part. Or the checking part. Both (and a bit more) we leave to you! But first, a tour.
 
-## Implementation Details
+dictionary.h
+Open up dictionary.h, and you’ll see some new syntax, including a few lines that mention DICTIONARY_H. No need to worry about those, but, if curious, those lines just ensure that, even though dictionary.c and speller.c (which you’ll see in a moment) #include this file, clang will only compile it once.
 
-Implement, in `cash.c` at right, a program that first asks the user how much change is owed and then prints the minimum number of coins with which that change can be made.
+Next notice how we #include a file called stdbool.h. That’s the file in which bool itself is defined. You’ve not needed it before, since the CS50 Library used to #include that for you.
 
-* Use `get_float` to get the user's input and `printf` to output your answer. Assume that the only coins available are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢).
-    * We ask that you use `get_float` so that you can handle dollars and cents, albeit sans dollar sign. In other words, if some customer is owed $9.75 (as in the case where a newspaper costs 25¢ but the customer pays with a $10 bill), assume that your program's input will be `9.75` and not `$9.75` or `975`. However, if some customer is owed $9 exactly, assume that your program's input will be `9.00` or just `9` but, again, not `$9` or `900`. Of course, by nature of floating-point values, your program will likely work with inputs like `9.0` and `9.000` as well; you need not worry about checking whether the user's input is "formatted" like money should be.
-* You need not try to check whether a user's input is too large to fit in a `float`. Using `get_float` alone will ensure that the user's input is indeed a floating-point (or integral) value but not that it is non-negative.
-* If the user fails to provide a non-negative value, your program should re-prompt the user for a valid amount again and again until the user complies.
-* So that we can automate some tests of your code, be sure that your program's last line of output is only the minimum number of coins possible: an integer followed by `\n`.
-* Beware the inherent imprecision of floating-point values. Recall [`floats.c`](https://sandbox.cs50.io/575cd269-8b4e-4a01-bc9f-3de38614b43e) from class, wherein, if `x` is `2`, and `y` is `10`, `x / y` is not precisely two tenths! And so, before making change, you'll probably want to convert the user's inputted dollars to cents (i.e., from a `float` to an `int`) to avoid tiny errors that might otherwise add up!
-* Take care to round your cents to the nearest penny, as with `round`, which is declared in `math.h`. For instance, if `dollars` is a `float` with the user's input (e.g., `0.20`), then code like
+Also notice our use of #define, a “preprocessor directive” that defines a “constant” called LENGTH that has a value of 45. It’s a constant in the sense that you can’t (accidentally) change it in your own code. In fact, clang will replace any mentions of LENGTH in your own code with, literally, 45. In other words, it’s not a variable, just a find-and-replace trick.
 
-  ```
-  int coins = round(dollars * 100);
-  ```
+Finally, notice the prototypes for five functions: check, hash, load, size, and unload. Notice how three of those take a pointer as an argument, per the *:
 
-  will safely convert `0.20` (or even `0.200000002980232238769531250`) to `20`.
+bool check(const char *word);
+unsigned int hash(const char *word);
+bool load(const char *dictionary);
+Recall that char * is what we used to call string. So those three prototypes are essentially just:
 
-Your program should behave per the examples below.
+bool check(const string word);
+unsigned int hash(const string word);
+bool load(const string dictionary);
+And const, meanwhile, just says that those strings, when passed in as arguments, must remain constant; you won’t be able to change them, accidentally or otherwise!
 
-```
-$ ./cash
-Change owed: 0.41
-4
-```
+dictionary.c
+Now open up dictionary.c. Notice how, atop the file, we’ve defined a struct called node that represents a node in a hash table. And we’ve declared a global pointer array, table, which will (soon) represent the hash table you will use to keep track of words in the dictionary. The array contains N node pointers, and we’ve set N equal to 1 for now, meaning this hash table has just 1 bucket right now. You’ll likely want to increase the number of buckets, as by changing N, to something larger!
 
-```
-$ ./cash
-Change owed: -0.41
-Change owed: foo
-Change owed: 0.41
-4
-```
+Next, notice that we’ve implemented load, hash, check, size, and unload, but only barely, just enough for the code to compile. Your job, ultimately, is to re-implement those functions as cleverly as possible so that this spell checker works as advertised. And fast!
 
-### Walkthrough
+speller.c
+Okay, next open up speller.c and spend some time looking over the code and comments therein. You won’t need to change anything in this file, and you don’t need to understand its entirety, but do try to get a sense of its functionality nonetheless. Notice how, by way of a function called getrusage, we’ll be “benchmarking” (i.e., timing the execution of) your implementations of check, load, size, and unload. Also notice how we go about passing check, word by word, the contents of some file to be spell-checked. Ultimately, we report each misspelling in that file along with a bunch of statistics.
 
-{% video https://www.youtube.com/watch?v=Y3nWGvqt_Cg %}
+Notice, incidentally, that we have defined the usage of speller to be
+
+Usage: speller [dictionary] text
+where dictionary is assumed to be a file containing a list of lowercase words, one per line, and text is a file to be spell-checked. As the brackets suggest, provision of dictionary is optional; if this argument is omitted, speller will use dictionaries/large by default. In other words, running
+
+$ ./speller text
+will be equivalent to running
+
+$ ./speller dictionaries/large text
+where text is the file you wish to spell-check. Suffice it to say, the former is easier to type! (Of course, speller will not be able to load any dictionaries until you implement load in dictionary.c! Until then, you’ll see Could not load.)
+
+Within the default dictionary, mind you, are 143,091 words, all of which must be loaded into memory! In fact, take a peek at that file to get a sense of its structure and size. Notice that every word in that file appears in lowercase (even, for simplicity, proper nouns and acronyms). From top to bottom, the file is sorted lexicographically, with only one word per line (each of which ends with \n). No word is longer than 45 characters, and no word appears more than once. During development, you may find it helpful to provide speller with a dictionary of your own that contains far fewer words, lest you struggle to debug an otherwise enormous structure in memory. In dictionaries/small is one such dictionary. To use it, execute
+
+$ ./speller dictionaries/small text
+where text is the file you wish to spell-check. Don’t move on until you’re sure you understand how speller itself works!
+
+Odds are, you didn’t spend enough time looking over speller.c. Go back one square and walk yourself through it again!
+
+texts/
+So that you can test your implementation of speller, we’ve also provided you with a whole bunch of texts, among them the script from La La Land, the text of the Affordable Care Act, three million bytes from Tolstoy, some excerpts from The Federalist Papers and Shakespeare, the entirety of the King James V Bible and the Koran, and more. So that you know what to expect, open and skim each of those files, all of which are in a directory called texts within your pset5 directory.
+
+Now, as you should know from having read over speller.c carefully, the output of speller, if executed with, say,
+
+$ ./speller texts/lalaland.txt
+will eventually resemble the below. For now, try the staff’s solution (using the default dictionary) by executing
+
+$ ~cs50/2019/fall/pset5/speller texts/lalaland.txt
+Below’s some of the output you’ll see. For information’s sake, we’ve excerpted some examples of “misspellings.” And lest we spoil the fun, we’ve omitted our own statistics for now.
+
+MISSPELLED WORDS
+
+[...]
+AHHHHHHHHHHHHHHHHHHHHHHHHHHHT
+[...]
+Shangri
+[...]
+fianc
+[...]
+Sebastian's
+[...]
+
+WORDS MISSPELLED:
+WORDS IN DICTIONARY:
+WORDS IN TEXT:
+TIME IN load:
+TIME IN check:
+TIME IN size:
+TIME IN unload:
+TIME IN TOTAL:
+TIME IN load represents the number of seconds that speller spends executing your implementation of load. TIME IN check represents the number of seconds that speller spends, in total, executing your implementation of check. TIME IN size represents the number of seconds that speller spends executing your implementation of size. TIME IN unload represents the number of seconds that speller spends executing your implementation of unload. TIME IN TOTAL is the sum of those four measurements.
+
+Note that these times may vary somewhat across executions of speller, depending on what else CS50 IDE is doing, even if you don’t change your code.
+
+Incidentally, to be clear, by “misspelled” we simply mean that some word is not in the dictionary provided.
+
+Makefile
+And, lastly, recall that make automates compilation of your code so that you don’t have to execute clang manually along with a whole bunch of switches. However, as your programs grow in size, make won’t be able to infer from context anymore how to compile your code; you’ll need to start telling make how to compile your program, particularly when they involve multiple source (i.e., .c) files, as in the case of this problem. And so we’ll utilize a Makefile, a configuration file that tells make exactly what to do. Open up Makefile, and you should see four lines:
+
+The first line tells make to execute the subsequent lines whenever you yourself execute make speller (or just make).
+The second line tells make how to compile speller.c into machine code (i.e., speller.o).
+The third line tells make how to compile dictionary.c into machine code (i.e., dictionary.o).
+The fourth line tells make to link speller.o and dictionary.o in a file called speller.
+Be sure to compile speller by executing make speller (or just make). Executing make dictionary won’t work!
+
+Specification
+Alright, the challenge now before you is to implement, in order, load, hash, size, check, and unload as efficiently as possible using a hash table in such a way that TIME IN load, TIME IN check, TIME IN size, and TIME IN unload are all minimized. To be sure, it’s not obvious what it even means to be minimized, inasmuch as these benchmarks will certainly vary as you feed speller different values for dictionary and for text. But therein lies the challenge, if not the fun, of this problem. This problem is your chance to design. Although we invite you to minimize space, your ultimate enemy is time. But before you dive in, some specifications from us.
+
+You may not alter speller.c or Makefile.
+You may alter dictionary.c (and, in fact, must in order to complete the implementations of load, hash, size, check, and unload), but you may not alter the declarations (i.e., prototypes) of load, hash, size, check, or unload. You may, though, add new functions and (local or global) variables to dictionary.c.
+You may change the value of N in dictionary.c, so that your hash table can have more buckets.
+You may alter dictionary.h, but you may not alter the declarations of load, hash, size, check, or unload.
+Your implementation of check must be case-insensitive. In other words, if foo is in dictionary, then check should return true given any capitalization thereof; none of foo, foO, fOo, fOO, fOO, Foo, FoO, FOo, and FOO should be considered misspelled.
+Capitalization aside, your implementation of check should only return true for words actually in dictionary. Beware hard-coding common words (e.g., the), lest we pass your implementation a dictionary without those same words. Moreover, the only possessives allowed are those actually in dictionary. In other words, even if foo is in dictionary, check should return false given foo's if foo's is not also in dictionary.
+You may assume that any dictionary passed to your program will be structured exactly like ours, alphabetically sorted from top to bottom with one word per line, each of which ends with \n. You may also assume that dictionary will contain at least one word, that no word will be longer than LENGTH (a constant defined in dictionary.h) characters, that no word will appear more than once, that each word will contain only lowercase alphabetical characters and possibly apostrophes, and that no word will start with an apostrophe.
+You may assume that check will only be passed words that contain (uppercase or lowercase) alphabetical characters and possibly apostrophes.
+Your spell checker may only take text and, optionally, dictionary as input. Although you might be inclined (particularly if among those more comfortable) to “pre-process” our default dictionary in order to derive an “ideal hash function” for it, you may not save the output of any such pre-processing to disk in order to load it back into memory on subsequent runs of your spell checker in order to gain an advantage.
+Your spell checker must not leak any memory. Be sure to check for leaks with valgrind.
+You may search for (good) hash functions online, so long as you cite the origin of any hash function you integrate into your own code.
+Alright, ready to go?
+
+Implement load.
+Implement hash.
+Implement size.
+Implement check.
+Implement unload.
+Walkthroughs
+Please note that there are 6 videos in this playlist.
 
 
-### Staff's Solution
+Hints
+To compare two strings case-insensitively, you may find strcasecmp (declared in strings.h) useful! You’ll likely also want to ensure that your hash function is case-insensitive, such that foo and FOO have the same hash value.
 
-To try out the staff's implementation of this problem, execute
+Ultimately, be sure to free in unload any memory that you allocated in load! Recall that valgrind is your newest best friend. Know that valgrind watches for leaks while your program is actually running, so be sure to provide command-line arguments if you want valgrind to analyze speller while you use a particular dictionary and/or text, as in the below. Best to use a small text, though, else valgrind could take quite a while to run.
 
-```
-./cash
-```
+$ valgrind ./speller texts/cat.txt
+If you run valgrind without specifying a text for speller, your implementations of load and unload won’t actually get called (and thus analyzed).
 
-within [this sandbox](http://bit.ly/2VAxlUr).
+If unsure how to interpret the output of valgrind, do just ask help50 for help:
 
-### How to Test Your Code
+$ help50 valgrind ./speller texts/cat.txt
+Testing
+How to check whether your program is outting the right misspelled words? Well, you’re welcome to consult the “answer keys” that are inside of the keys directory that’s inside of your speller directory. For instance, inside of keys/lalaland.txt are all of the words that your program should think are misspelled.
 
-Does your code work as prescribed when you input
+You could therefore run your program on some text in one window, as with the below.
 
-* `-1.00` (or other negative numbers)?
-* `0.00`?
-* `0.01` (or other positive numbers)?
-* letters or words?
-* no input at all, when you only hit Enter?
+$ ./speller texts/lalaland.txt
+And you could then run the staff’s solution on the same text in another window, as with the below.
 
-You can also execute the below to evaluate the correctness of your code using `check50`, but be sure to compile and test it yourself as well!
+$ ~cs50/2019/fall/pset5/speller texts/lalaland.txt
+And you could then compare the windows visually side by side. That could get tedious quickly, though. So you might instead want to “redirect” your program’s output to a file, as with the below.
 
-```
-check50 cs50/problems/2019/fall/cash
-```
+$ ./speller texts/lalaland.txt > student.txt
+$ ~cs50/2019/fall/pset5/speller texts/lalaland.txt > staff.txt
+You can then compare both files side by side in the same window with a program like diff, as with the below.
 
-Execute the below to evaluate the style of your code using `style50`.
+$ diff -y student.txt staff.txt
+Alternatively, to save time, you could just compare your program’s output (assuming you redirected it to, e.g., student.txt) against one of the answer keys without running the staff’s solution, as with the below.
 
-```
-style50 cash.c
-```
+$ diff -y student.txt keys/lalaland.txt
+If your program’s output matches the staff’s, diff will output two columns that should be identical except for, perhaps, the running times at the bottom. If the columns differ, though, you’ll see a > or | where they differ. For instance, if you see
 
-{% next %}
+MISSPELLED WORDS                                                MISSPELLED WORDS
 
-## How to Submit
+TECHNO                                                          TECHNO
+L                                                               L
+                                                              > Thelonious
+Prius                                                           Prius
+                                                              > MIA
+L                                                               L
+that means your program (whose output is on the left) does not think that Thelonious or MIA is misspelled, even though the staff’s output (on the right) does, as is implied by the absence of, say, Thelonious in the lefthand column and the presence of Thelonious in the righthand column.
 
-Execute the below, logging in with your GitHub username and password when prompted. For security, you'll see asterisks (`*`) instead of the actual characters in your password.
+check50
+To test your code less manually (though still not exhaustively), you may also execute the below.
 
-```
-submit50 cs50/problems/2019/fall/cash
-```
+$ check50 cs50/problems/2020/x/speller
+Note that check50 will also check for memory leaks, so be sure you’ve run valgrind as well.
+
+Staff’s Solution
+How to assess just how fast (and correct) your code is? Well, as always, feel free to play with the staff’s solution, as with the below, and compare its numbers against yours.
+
+$ ~cs50/2019/fall/pset5/speller texts/lalaland.txt
+Big Board
+And if you’d like to put your code to the test against classmates’ code (just for fun), execute the command below to challenge the Big Board before or after you submit.
+
+Submit to Big Board
+$ submit50 cs50/problems/2020/x/challenges/speller
+Then visit the URL that submit50 outputs to see where you rank!
+
+Important Note: Submitting to the Big Board is not the same thing as submitting the problem set itself. To submit the problem set, complete the How to Submit instructions in the next section.
+
+How to Submit
+Execute the below, logging in with your GitHub username and password when prompted. For security, you’ll see asterisks (*) instead of the actual characters in your password.
+
+$ submit50 cs50/problems/2020/x/speller

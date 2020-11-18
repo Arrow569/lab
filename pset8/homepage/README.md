@@ -1,97 +1,75 @@
-# Cash
+Homepage
+Build a simple homepage using HTML, CSS, and JavaScript.
 
-## Greedy Algorithms
+Background
+The internet has enabled incredible things: we can use a search engine to research anything imaginable, communicate with friends and family members around the globe, play games, take courses, and so much more. But it turns out that nearly all pages we may visit are built on three core languages, each of which serves a slightly different purpose:
 
-<!-- http://mypieceofthe31415927.blogspot.com/2014/04/whats-wrong-with-these-us-coins.html -->
-![US coins](coins.jpg)
+HTML, or HyperText Markup Language, which is used to describe the content of websites;
+CSS, Cascading Style Sheets, which is used to describe the aesthetics of websites; and
+JavaScript, which is used to make websites interactive and dynamic.
+Create a simple homepage that introduces yourself, your favorite hobby or extracurricular, or anything else of interest to you.
 
-When making change, odds are you want to minimize the number of coins you're dispensing for each customer, lest you run out (or annoy the customer!).  Fortunately, computer science has given cashiers everywhere ways to minimize numbers of coins due: greedy algorithms.
+Getting Started
+Here’s how to download this problem’s “distribution code” (i.e., starter code) into your own CS50 IDE. Log into CS50 IDE and then, in a terminal window, execute each of the below.
 
-According to the National Institute of Standards and Technology (NIST), a greedy algorithm is one "that always takes the best immediate, or local, solution while finding an answer. Greedy algorithms find the overall, or globally, optimal solution for some optimization problems, but may find less-than-optimal solutions for some instances of other problems."
+Execute cd to ensure that you’re in ~/ (i.e., your home directory).
+Execute mkdir pset8 to make (i.e., create) a directory called pset8 in your home directory.
+Execute cd pset8 to change into (i.e., open) that directory.
+Execute wget https://cdn.cs50.net/2019/fall/tracks/web/homepage/homepage.zip to download a (compressed) ZIP file with this problem’s distribution.
+Execute unzip homepage.zip to uncompress that file.
+Execute rm homepage.zip followed by yes or y to delete that ZIP file.
+Execute ls. You should see a directory called homepage, which was inside of that ZIP file.
+Execute cd homepage to change into that directory.
+Execute ls. You should see this problem’s distribution, including index.html and styles.css.
+You can immediately start a server to view the site by running
+$ http-server
+in the terminal window and clicking on the link that appears.
 
-What's all that mean? Well, suppose that a cashier owes a customer some change and in that cashier's drawer are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢). The problem to be solved is to decide which coins and how many of each to hand to the customer. Think of a "greedy" cashier as one who wants to take the biggest bite out of this problem as possible with each coin they take out of the drawer. For instance, if some customer is owed 41¢, the biggest first (i.e., best immediate, or local) bite that can be taken is 25¢ (this bite is "best" inasmuch as it gets us closer to 0¢ faster than any other coin would). Note that a bite of this size would whittle what was a 41¢ problem down to a 16¢ problem, since 41 - 25 = 16. That is, the remainder is a similar but smaller problem. Needless to say, another 25¢ bite would be too big (assuming the cashier prefers not to lose money). So, our greedy cashier would move on to a bite of size 10¢, leaving him or her with a 6¢ problem. At that point, greed calls for one 5¢ bite followed by one 1¢ bite, at which point the problem is solved. The customer receives one quarter, one dime, one nickel, and one penny: four coins in total.
+Specification
+Implement in your homepage directory a website that must:
 
-It turns out that this greedy approach (i.e., algorithm) is not only locally optimal but also globally so for America's currency (and also the European Union's). That is, so long as a cashier has enough of each coin, this largest-to-smallest approach will yield the fewest coins possible. How few? Well, you tell us!
+Contain at least four different .html pages, at least one of which is index.html (the main page of your website), and it should be possible to get from any page on your website to any other page by following one or more hyperlinks.
+Use at least ten (10) distinct HTML tags besides <html>, <head>, <body>, and <title>. Using some tag (e.g., <p>) multiple times still counts as just one (1) of those ten!
+Integrate one or more features from Bootstrap into your site. Bootstrap is a popular library (that comes with lots of CSS classes and more) via which you can beautify your site. See Bootstrap’s documentation to get started. To add Bootstrap to your site, it suffices to include
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 
-{% next %}
+in your pages’ <head>, below which you can also include
 
-## Implementation Details
+<link href="styles.css" rel="stylesheet">
+to link your own CSS.
 
-Implement, in `cash.c` at right, a program that first asks the user how much change is owed and then prints the minimum number of coins with which that change can be made.
+Have at least one stylesheet file of your own creation, styles.css, which uses at least five (5) different CSS selectors (e.g. tag (example), class (.example), or ID (#example)), and within which you use a total of at least five (5) different CSS properties, such as font-size, or margin; and
+Integrate one or more features of JavaScript into your site to make your site more interactive. For example, you can use JavaScript to add alerts, to have an effect at a recurring interval, or to add interactivity to buttons, dropdowns, or forms. Feel free to be creative!
+Ensure that your site looks nice on browsers both on mobile devices as well as laptops and desktops.
+Testing
+If you want to view how your site looks while you work on it, there are two options:
 
-* Use `get_float` to get the user's input and `printf` to output your answer. Assume that the only coins available are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢).
-    * We ask that you use `get_float` so that you can handle dollars and cents, albeit sans dollar sign. In other words, if some customer is owed $9.75 (as in the case where a newspaper costs 25¢ but the customer pays with a $10 bill), assume that your program's input will be `9.75` and not `$9.75` or `975`. However, if some customer is owed $9 exactly, assume that your program's input will be `9.00` or just `9` but, again, not `$9` or `900`. Of course, by nature of floating-point values, your program will likely work with inputs like `9.0` and `9.000` as well; you need not worry about checking whether the user's input is "formatted" like money should be.
-* You need not try to check whether a user's input is too large to fit in a `float`. Using `get_float` alone will ensure that the user's input is indeed a floating-point (or integral) value but not that it is non-negative.
-* If the user fails to provide a non-negative value, your program should re-prompt the user for a valid amount again and again until the user complies.
-* So that we can automate some tests of your code, be sure that your program's last line of output is only the minimum number of coins possible: an integer followed by `\n`.
-* Beware the inherent imprecision of floating-point values. Recall [`floats.c`](https://sandbox.cs50.io/575cd269-8b4e-4a01-bc9f-3de38614b43e) from class, wherein, if `x` is `2`, and `y` is `10`, `x / y` is not precisely two tenths! And so, before making change, you'll probably want to convert the user's inputted dollars to cents (i.e., from a `float` to an `int`) to avoid tiny errors that might otherwise add up!
-* Take care to round your cents to the nearest penny, as with `round`, which is declared in `math.h`. For instance, if `dollars` is a `float` with the user's input (e.g., `0.20`), then code like
+Within CS50 IDE, navigate to your homepage directory (remember how?) and then execute
+$ http-server
+Within CS50 IDE, right-click (or Ctrl+click, on a Mac) on the homepage directory in the file tree at left. From the options that appear, select Serve, which should open a new tab in your browser (it may take a second or two) with your site therein.
+Recall also that by opening Developer Tools in Google Chrome, you can simulate visiting your page on a mobile device by clicking the phone-shaped icon to the left of Elements in the developer tools window, or, once the Developer Tools tab has already been opened, by typing Ctrl+Shift+M on a PC or Cmd+Shift+M on a Mac, rather than needing to visit your site on a mobile device separately!
 
-  ```
-  int coins = round(dollars * 100);
-  ```
+Assessment
+No check50 for this assignment! Instead, your site’s correctness will be assessed based on whether you meet the requirements of the specification as outlined above, and whether your HTML is well-formed and valid. To ensure that your pages are, you can use the W3Schools HTML Validator service, copying and pasting your HTML directly into the provided text box. Take care to eliminate any warnings or errors suggested by the validator before submitting!
 
-  will safely convert `0.20` (or even `0.200000002980232238769531250`) to `20`.
+Consider also:
 
-Your program should behave per the examples below.
+whether the aesthetics of your site are such that it is intuitive and straightforward for a user to navigate;
+whether your CSS has been factored out into a separate CSS file(s); and
+whether you have avoided repetition and redundancy by “cascading” style properties from parent tags.
+Afraid style50 does not support HTML files, and so it is incumbent upon you to indent and align your HTML tags cleanly. Know also that you can create an HTML comment with:
 
-```
-$ ./cash
-Change owed: 0.41
-4
-```
+<!-- Comment goes here -->
+but commenting your HTML code is not as imperative as it is when commenting code in, say, C or Python. You can also comment your CSS, in CSS files, with:
 
-```
-$ ./cash
-Change owed: -0.41
-Change owed: foo
-Change owed: 0.41
-4
-```
+/* Comment goes here */
+Hints
+For fairly comprehensive guides on the languages introduced in this problem, check out the documentation for each on W3Schools.
 
-### Walkthrough
+HTML
+CSS
+JavaScript
+How to Submit
+Execute the below, logging in with your GitHub username and password when prompted. For security, you’ll see asterisks (*) instead of the actual characters in your password.
 
-{% video https://www.youtube.com/watch?v=Y3nWGvqt_Cg %}
-
-
-### Staff's Solution
-
-To try out the staff's implementation of this problem, execute
-
-```
-./cash
-```
-
-within [this sandbox](http://bit.ly/2VAxlUr).
-
-### How to Test Your Code
-
-Does your code work as prescribed when you input
-
-* `-1.00` (or other negative numbers)?
-* `0.00`?
-* `0.01` (or other positive numbers)?
-* letters or words?
-* no input at all, when you only hit Enter?
-
-You can also execute the below to evaluate the correctness of your code using `check50`, but be sure to compile and test it yourself as well!
-
-```
-check50 cs50/problems/2019/fall/cash
-```
-
-Execute the below to evaluate the style of your code using `style50`.
-
-```
-style50 cash.c
-```
-
-{% next %}
-
-## How to Submit
-
-Execute the below, logging in with your GitHub username and password when prompted. For security, you'll see asterisks (`*`) instead of the actual characters in your password.
-
-```
-submit50 cs50/problems/2019/fall/cash
-```
+submit50 cs50/problems/2020/x/tracks/web/homepage

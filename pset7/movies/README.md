@@ -1,97 +1,110 @@
-# Cash
+Movies
+Write SQL queries to answer questions about a database of movies.
 
-## Greedy Algorithms
+Getting Started
+Here’s how to download this problem into your own CS50 IDE. Log into CS50 IDE and then, in a terminal window, execute each of the below.
 
-<!-- http://mypieceofthe31415927.blogspot.com/2014/04/whats-wrong-with-these-us-coins.html -->
-![US coins](coins.jpg)
+Execute cd to ensure that you’re in ~/ (i.e., your home directory, aka ~).
+If you haven’t already, execute mkdir pset7 to make (i.e., create) a directory called pset7 in your home directory.
+Execute cd pset7 to change into (i.e., open) that directory.
+Execute wget https://cdn.cs50.net/2019/fall/psets/7/movies/movies.zip to download a (compressed) ZIP file with this problem’s distribution.
+Execute unzip movies.zip to uncompress that file.
+Execute rm movies.zip followed by yes or y to delete that ZIP file.
+Execute ls. You should see a directory called movies, which was inside of that ZIP file.
+Execute cd movies to change into that directory.
+Execute ls. You should see a movies.db file, and some empty .sql files as well.
+Alternatively, you’re welcome to download and unzip cdn.cs50.net/2019/fall/psets/7/movies/movies.zip on your own computer and then open it in DB Browser for SQLite. But be sure to upload your .sql files to CS50 IDE ultimately so that you can submit them via submit50.
 
-When making change, odds are you want to minimize the number of coins you're dispensing for each customer, lest you run out (or annoy the customer!).  Fortunately, computer science has given cashiers everywhere ways to minimize numbers of coins due: greedy algorithms.
+Understanding
+Provided to you is a file called movies.db, a SQLite database that stores data from IMDb about movies, the people who directed and starred in them, and their ratings. In a terminal window, run sqlite3 movies.db so that you can begin executing queries on the database.
 
-According to the National Institute of Standards and Technology (NIST), a greedy algorithm is one "that always takes the best immediate, or local, solution while finding an answer. Greedy algorithms find the overall, or globally, optimal solution for some optimization problems, but may find less-than-optimal solutions for some instances of other problems."
+First, when sqlite3 prompts you to provide a query, type .schema and press enter. This will output the CREATE TABLE statements that were used to generate each of the tables in the database. By examining those statements, you can identify the columns present in each table.
 
-What's all that mean? Well, suppose that a cashier owes a customer some change and in that cashier's drawer are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢). The problem to be solved is to decide which coins and how many of each to hand to the customer. Think of a "greedy" cashier as one who wants to take the biggest bite out of this problem as possible with each coin they take out of the drawer. For instance, if some customer is owed 41¢, the biggest first (i.e., best immediate, or local) bite that can be taken is 25¢ (this bite is "best" inasmuch as it gets us closer to 0¢ faster than any other coin would). Note that a bite of this size would whittle what was a 41¢ problem down to a 16¢ problem, since 41 - 25 = 16. That is, the remainder is a similar but smaller problem. Needless to say, another 25¢ bite would be too big (assuming the cashier prefers not to lose money). So, our greedy cashier would move on to a bite of size 10¢, leaving him or her with a 6¢ problem. At that point, greed calls for one 5¢ bite followed by one 1¢ bite, at which point the problem is solved. The customer receives one quarter, one dime, one nickel, and one penny: four coins in total.
+Notice that the movies table has an id column that uniquely identifies each movie, as well as columns for the title of a movie and the year in which the movie was released. The people table also has an id column, and also has columns for each person’s name and birth year.
 
-It turns out that this greedy approach (i.e., algorithm) is not only locally optimal but also globally so for America's currency (and also the European Union's). That is, so long as a cashier has enough of each coin, this largest-to-smallest approach will yield the fewest coins possible. How few? Well, you tell us!
+Movie ratings, meanwhile, are stored in the ratings table. The first column in the table is movie_id: a foreign key that references the id of the movies table. The rest of the row contains data about the rating for each movie and the number of votes the movie has received on IMDb.
 
-{% next %}
+Finally, the stars and directors tables match people to the movies in which they acted or directed. (Only principal stars and directors are included.) Each table has just two columns: movie_id and person_id, which reference a specific movie and person, respectively.
 
-## Implementation Details
+The challenge ahead of you is to write SQL queries to answer a variety of different questions by selecting data from one or more of these tables.
 
-Implement, in `cash.c` at right, a program that first asks the user how much change is owed and then prints the minimum number of coins with which that change can be made.
+Specification
+For each of the following problems, you should write a single SQL query that outputs the results specified by each problem. Your response must take the form of a single SQL query, though you may nest other queries inside of your query. You should not assume anything about the ids of any particular movies or people: your queries should be accurate even if the id of any particular movie or person were different. Finally, each query should return only the data necessary to answer the question: if the problem only asks you to output the names of movies, for example, then your query should not also output the each movie’s release year.
 
-* Use `get_float` to get the user's input and `printf` to output your answer. Assume that the only coins available are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢).
-    * We ask that you use `get_float` so that you can handle dollars and cents, albeit sans dollar sign. In other words, if some customer is owed $9.75 (as in the case where a newspaper costs 25¢ but the customer pays with a $10 bill), assume that your program's input will be `9.75` and not `$9.75` or `975`. However, if some customer is owed $9 exactly, assume that your program's input will be `9.00` or just `9` but, again, not `$9` or `900`. Of course, by nature of floating-point values, your program will likely work with inputs like `9.0` and `9.000` as well; you need not worry about checking whether the user's input is "formatted" like money should be.
-* You need not try to check whether a user's input is too large to fit in a `float`. Using `get_float` alone will ensure that the user's input is indeed a floating-point (or integral) value but not that it is non-negative.
-* If the user fails to provide a non-negative value, your program should re-prompt the user for a valid amount again and again until the user complies.
-* So that we can automate some tests of your code, be sure that your program's last line of output is only the minimum number of coins possible: an integer followed by `\n`.
-* Beware the inherent imprecision of floating-point values. Recall [`floats.c`](https://sandbox.cs50.io/575cd269-8b4e-4a01-bc9f-3de38614b43e) from class, wherein, if `x` is `2`, and `y` is `10`, `x / y` is not precisely two tenths! And so, before making change, you'll probably want to convert the user's inputted dollars to cents (i.e., from a `float` to an `int`) to avoid tiny errors that might otherwise add up!
-* Take care to round your cents to the nearest penny, as with `round`, which is declared in `math.h`. For instance, if `dollars` is a `float` with the user's input (e.g., `0.20`), then code like
+You’re welcome to check your queries’ results against IMDb itself, but realize that ratings on the website might differ from those in movies.db, as more votes might have been cast since we downloaded the data!
 
-  ```
-  int coins = round(dollars * 100);
-  ```
+In 1.sql, write a SQL query to list the titles of all movies released in 2008.
+Your query should output a table with a single column for the title of each movie.
+In 2.sql, write a SQL query to determine the birth year of Emma Stone.
+Your query should output a table with a single column and a single row (plus optional header) containing Emma Stone’s birth year.
+You may assume that there is only one person in the database with the name Emma Stone.
+In 3.sql, write a SQL query to list the titles of all movies with a release date on or after 2018, in alphabetical order.
+Your query should output a table with a single column for the title of each movie.
+Movies released in 2018 should be included, as should movies with release dates in the future.
+In 4.sql, write a SQL query to determine the number of movies with an IMDb rating of 10.0.
+Your query should output a table with a single column and a single row (plus optional header) containing the number of movies with a 10.0 rating.
+In 5.sql, write a SQL query to list the titles and release years of all Harry Potter movies, in chronological order.
+Your query should output a table with two columns, one for the title of each movie and one for the release year of each movie.
+You may assume that the title of all Harry Potter movies will begin with the words “Harry Potter”, and that if a movie title begins with the words “Harry Potter”, it is a Harry Potter movie.
+In 6.sql, write a SQL query to determine the average rating of all movies released in 2012.
+Your query should output a table with a single column and a single row (plus optional header) containing the average rating.
+In 7.sql, write a SQL query to list all movies released in 2010 and their ratings, in descending order by rating. For movies with the same rating, order them alphabetically by title.
+Your query should output a table with two columns, one for the title of each movie and one for the rating of each movie.
+Movies that do not have ratings should not be included in the result.
+In 8.sql, write a SQL query to list the names of all people who starred in Toy Story.
+Your query should output a table with a single column for the name of each person.
+You may assume that there is only one movie in the database with the title Toy Story.
+In 9.sql, write a SQL query to list the names of all people who starred in a movie released in 2004, ordered by birth year.
+Your query should output a table with a single column for the name of each person.
+People with the same birth year may be listed in any order.
+No need to worry about people who have no birth year listed, so long as those who do have a birth year are listed in order.
+If a person appeared in more than one movie in 2004, they should only appear in your results once.
+In 10.sql, write a SQL query to list the names of all people who have directed a movie that received a rating of at least 9.0.
+Your query should output a table with a single column for the name of each person.
+In 11.sql, write a SQL query to list the titles of the five highest rated movies (in order) that Chadwick Boseman starred in, starting with the highest rated.
+Your query should output a table with a single column for the title of each movie.
+You may assume that there is only one person in the database with the name Chadwick Boseman.
+In 12.sql, write a SQL query to list the titles of all movies in which both Johnny Depp and Helena Bonham Carter starred.
+Your query should output a table with a single column for the title of each movie.
+You may assume that there is only one person in the database with the name Johnny Depp.
+You may assume that there is only one person in the database with the name Helena Bonham Carter.
+In 13.sql, write a SQL query to list the names of all people who starred in a movie in which Kevin Bacon also starred.
+Your query should output a table with a single column for the name of each person.
+There may be multiple people named Kevin Bacon in the database. Be sure to only select the Kevin Bacon born in 1958.
+Kevin Bacon himself should not be included in the resulting list.
+Walkthrough
 
-  will safely convert `0.20` (or even `0.200000002980232238769531250`) to `20`.
+Usage
+To test your queries on CS50 IDE, you can query the database by running
 
-Your program should behave per the examples below.
+$ cat filename.sql | sqlite3 movies.db
+where filename.sql is the file containing your SQL query.
 
-```
-$ ./cash
-Change owed: 0.41
-4
-```
+Or you can paste them into DB Browser for SQLite’s Execute SQL tab and click ▶.
 
-```
-$ ./cash
-Change owed: -0.41
-Change owed: foo
-Change owed: 0.41
-4
-```
+Hints
+See this SQL keywords reference for some SQL syntax that may be helpful!
+Testing
+No check50 for this problem! But be sure to test each query and ensure that the output is what you expect. You can run sqlite3 movies.db to run additional queries on the database to ensure that your result is correct.
 
-### Walkthrough
+If you’re using the movies.db database provided in this problem set’s distribution, you should find that
 
-{% video https://www.youtube.com/watch?v=Y3nWGvqt_Cg %}
+Executing 1.sql results in a table with 1 column and 9,480 rows.
+Executing 2.sql results in a table with 1 column and 1 row.
+Executing 3.sql results in a table with 1 column and 35,755 rows.
+Executing 4.sql results in a table with 1 column and 1 row.
+Executing 5.sql results in a table with 2 columns and 10 rows.
+Executing 6.sql results in a table with 1 column and 1 row.
+Executing 7.sql results in a table with 2 columns and 6,835 rows.
+Executing 8.sql results in a table with 1 column and 4 rows.
+Executing 9.sql results in a table with 1 column and 18,013 rows.
+Executing 10.sql results in a table with 1 column and 1,841 rows.
+Executing 11.sql results in a table with 1 column and 5 rows.
+Executing 12.sql results in a table with 1 column and 6 rows.
+Executing 13.sql results in a table with 1 column and 176 rows.
+How to Submit
+Execute the below, logging in with your GitHub username and password when prompted. For security, you’ll see asterisks (*) instead of the actual characters in your password.
 
-
-### Staff's Solution
-
-To try out the staff's implementation of this problem, execute
-
-```
-./cash
-```
-
-within [this sandbox](http://bit.ly/2VAxlUr).
-
-### How to Test Your Code
-
-Does your code work as prescribed when you input
-
-* `-1.00` (or other negative numbers)?
-* `0.00`?
-* `0.01` (or other positive numbers)?
-* letters or words?
-* no input at all, when you only hit Enter?
-
-You can also execute the below to evaluate the correctness of your code using `check50`, but be sure to compile and test it yourself as well!
-
-```
-check50 cs50/problems/2019/fall/cash
-```
-
-Execute the below to evaluate the style of your code using `style50`.
-
-```
-style50 cash.c
-```
-
-{% next %}
-
-## How to Submit
-
-Execute the below, logging in with your GitHub username and password when prompted. For security, you'll see asterisks (`*`) instead of the actual characters in your password.
-
-```
-submit50 cs50/problems/2019/fall/cash
-```
+submit50 cs50/problems/2020/x/movies
+Acknowledgements
+Information courtesy of IMDb (imdb.com). Used with permission.

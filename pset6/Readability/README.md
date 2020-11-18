@@ -1,97 +1,38 @@
-# Cash
+Readability
+Implement a program that computes the approximate grade level needed to comprehend some text, per the below.
 
-## Greedy Algorithms
+$ python readability.py
+Text: Congratulations! Today is your day. You're off to Great Places! You're off and away!
+Grade 3
+Specification
+Write, in a file called readability.py in ~/pset6/readability/, a program that first asks the user to type in some text, and then outputs the grade level for the text, according to the Coleman-Liau formula, exactly as you did in Problem Set 2, except that your program this time should be written in Python.
+Recall that the Coleman-Liau index is computed as 0.0588 * L - 0.296 * S - 15.8, where L is the average number of letters per 100 words in the text, and S is the average number of sentences per 100 words in the text.
+Use get_string from the CS50 Library to get the user’s input, and print to output your answer.
+Your program should count the number of letters, words, and sentences in the text. You may assume that a letter is any lowercase character from a to z or any uppercase character from A to Z, any sequence of characters separated by spaces should count as a word, and that any occurrence of a period, exclamation point, or question mark indicates the end of a sentence.
+Your program should print as output "Grade X" where X is the grade level computed by the Coleman-Liau formula, rounded to the nearest integer.
+If the resulting index number is 16 or higher (equivalent to or greater than a senior undergraduate reading level), your program should output "Grade 16+" instead of giving the exact index number. If the index number is less than 1, your program should output "Before Grade 1".
+Note that the specification here is only a summary of the requirements, so if you didn’t do Readability in C, or if you are still unsure, we’d recommend that you review the C specification and walkthrough for clarification.
 
-<!-- http://mypieceofthe31415927.blogspot.com/2014/04/whats-wrong-with-these-us-coins.html -->
-![US coins](coins.jpg)
+Usage
+Your program should behave per the example below.
 
-When making change, odds are you want to minimize the number of coins you're dispensing for each customer, lest you run out (or annoy the customer!).  Fortunately, computer science has given cashiers everywhere ways to minimize numbers of coins due: greedy algorithms.
+$ python readability.py
+Text: Congratulations! Today is your day. You're off to Great Places! You're off and away!
+Grade 3
+Testing
+No check50 for this problem, but be sure to test your code for each of the following.
 
-According to the National Institute of Standards and Technology (NIST), a greedy algorithm is one "that always takes the best immediate, or local, solution while finding an answer. Greedy algorithms find the overall, or globally, optimal solution for some optimization problems, but may find less-than-optimal solutions for some instances of other problems."
+Run your program as python readability.py, and wait for a prompt for input. Type in One fish. Two fish. Red fish. Blue fish. and press enter. Your program should output Before Grade 1.
+Run your program as python readability.py, and wait for a prompt for input. Type in Would you like them here or there? I would not like them here or there. I would not like them anywhere. and press enter. Your program should output Grade 2.
+Run your program as python readability.py, and wait for a prompt for input. Type in Congratulations! Today is your day. You're off to Great Places! You're off and away! and press enter. Your program should output Grade 3.
+Run your program as python readability.py, and wait for a prompt for input. Type in Harry Potter was a highly unusual boy in many ways. For one thing, he hated the summer holidays more than any other time of year. For another, he really wanted to do his homework, but was forced to do it in secret, in the dead of the night. And he also happened to be a wizard. and press enter. Your program should output Grade 5.
+Run your program as python readability.py, and wait for a prompt for input. Type in In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since. and press enter. Your program should output Grade 7.
+Run your program as python readability.py, and wait for a prompt for input. Type in Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, "and what is the use of a book," thought Alice "without pictures or conversation?" and press enter. Your program should output Grade 8.
+Run your program as python readability.py, and wait for a prompt for input. Type in When he was nearly thirteen, my brother Jem got his arm badly broken at the elbow. When it healed, and Jem's fears of never being able to play football were assuaged, he was seldom self-conscious about his injury. His left arm was somewhat shorter than his right; when he stood or walked, the back of his hand was at right angles to his body, his thumb parallel to his thigh. and press enter. Your program should output Grade 8.
+Run your program as python readability.py, and wait for a prompt for input. Type in There are more things in Heaven and Earth, Horatio, than are dreamt of in your philosophy. and press enter. Your program should output Grade 9.
+Run your program as python readability.py, and wait for a prompt for input. Type in It was a bright cold day in April, and the clocks were striking thirteen. Winston Smith, his chin nuzzled into his breast in an effort to escape the vile wind, slipped quickly through the glass doors of Victory Mansions, though not quickly enough to prevent a swirl of gritty dust from entering along with him. and press enter. Your program should output Grade 10.
+Run your program as python readability.py, and wait for a prompt for input. Type in A large class of computational problems involve the determination of properties of graphs, digraphs, integers, arrays of integers, finite families of finite sets, boolean formulas and elements of other countable domains. and press enter. Your program should output Grade 16+.
+How to Submit
+Execute the below, logging in with your GitHub username and password when prompted. For security, you’ll see asterisks (*) instead of the actual characters in your password.
 
-What's all that mean? Well, suppose that a cashier owes a customer some change and in that cashier's drawer are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢). The problem to be solved is to decide which coins and how many of each to hand to the customer. Think of a "greedy" cashier as one who wants to take the biggest bite out of this problem as possible with each coin they take out of the drawer. For instance, if some customer is owed 41¢, the biggest first (i.e., best immediate, or local) bite that can be taken is 25¢ (this bite is "best" inasmuch as it gets us closer to 0¢ faster than any other coin would). Note that a bite of this size would whittle what was a 41¢ problem down to a 16¢ problem, since 41 - 25 = 16. That is, the remainder is a similar but smaller problem. Needless to say, another 25¢ bite would be too big (assuming the cashier prefers not to lose money). So, our greedy cashier would move on to a bite of size 10¢, leaving him or her with a 6¢ problem. At that point, greed calls for one 5¢ bite followed by one 1¢ bite, at which point the problem is solved. The customer receives one quarter, one dime, one nickel, and one penny: four coins in total.
-
-It turns out that this greedy approach (i.e., algorithm) is not only locally optimal but also globally so for America's currency (and also the European Union's). That is, so long as a cashier has enough of each coin, this largest-to-smallest approach will yield the fewest coins possible. How few? Well, you tell us!
-
-{% next %}
-
-## Implementation Details
-
-Implement, in `cash.c` at right, a program that first asks the user how much change is owed and then prints the minimum number of coins with which that change can be made.
-
-* Use `get_float` to get the user's input and `printf` to output your answer. Assume that the only coins available are quarters (25¢), dimes (10¢), nickels (5¢), and pennies (1¢).
-    * We ask that you use `get_float` so that you can handle dollars and cents, albeit sans dollar sign. In other words, if some customer is owed $9.75 (as in the case where a newspaper costs 25¢ but the customer pays with a $10 bill), assume that your program's input will be `9.75` and not `$9.75` or `975`. However, if some customer is owed $9 exactly, assume that your program's input will be `9.00` or just `9` but, again, not `$9` or `900`. Of course, by nature of floating-point values, your program will likely work with inputs like `9.0` and `9.000` as well; you need not worry about checking whether the user's input is "formatted" like money should be.
-* You need not try to check whether a user's input is too large to fit in a `float`. Using `get_float` alone will ensure that the user's input is indeed a floating-point (or integral) value but not that it is non-negative.
-* If the user fails to provide a non-negative value, your program should re-prompt the user for a valid amount again and again until the user complies.
-* So that we can automate some tests of your code, be sure that your program's last line of output is only the minimum number of coins possible: an integer followed by `\n`.
-* Beware the inherent imprecision of floating-point values. Recall [`floats.c`](https://sandbox.cs50.io/575cd269-8b4e-4a01-bc9f-3de38614b43e) from class, wherein, if `x` is `2`, and `y` is `10`, `x / y` is not precisely two tenths! And so, before making change, you'll probably want to convert the user's inputted dollars to cents (i.e., from a `float` to an `int`) to avoid tiny errors that might otherwise add up!
-* Take care to round your cents to the nearest penny, as with `round`, which is declared in `math.h`. For instance, if `dollars` is a `float` with the user's input (e.g., `0.20`), then code like
-
-  ```
-  int coins = round(dollars * 100);
-  ```
-
-  will safely convert `0.20` (or even `0.200000002980232238769531250`) to `20`.
-
-Your program should behave per the examples below.
-
-```
-$ ./cash
-Change owed: 0.41
-4
-```
-
-```
-$ ./cash
-Change owed: -0.41
-Change owed: foo
-Change owed: 0.41
-4
-```
-
-### Walkthrough
-
-{% video https://www.youtube.com/watch?v=Y3nWGvqt_Cg %}
-
-
-### Staff's Solution
-
-To try out the staff's implementation of this problem, execute
-
-```
-./cash
-```
-
-within [this sandbox](http://bit.ly/2VAxlUr).
-
-### How to Test Your Code
-
-Does your code work as prescribed when you input
-
-* `-1.00` (or other negative numbers)?
-* `0.00`?
-* `0.01` (or other positive numbers)?
-* letters or words?
-* no input at all, when you only hit Enter?
-
-You can also execute the below to evaluate the correctness of your code using `check50`, but be sure to compile and test it yourself as well!
-
-```
-check50 cs50/problems/2019/fall/cash
-```
-
-Execute the below to evaluate the style of your code using `style50`.
-
-```
-style50 cash.c
-```
-
-{% next %}
-
-## How to Submit
-
-Execute the below, logging in with your GitHub username and password when prompted. For security, you'll see asterisks (`*`) instead of the actual characters in your password.
-
-```
-submit50 cs50/problems/2019/fall/cash
-```
+submit50 cs50/problems/2020/x/sentimental/readability
